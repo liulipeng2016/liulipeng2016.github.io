@@ -6,23 +6,18 @@
   <meta name="renderer" content="webkit">
   <meta http-equiv="X-UA-Compatible" content="IE=edge" >
   <link rel="dns-prefetch" href="https://sanqiange.github.io">
-  <title>Spring boot + Swagger 入门搭建 | 三千歌</title>
+  <title>Spring boot 健康检测 | 三千歌</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta name="description" content="导语: Spring-Boot Spring Boot是由Pivotal团队提供的全新框架，其设计目的是用来简化新Spring应用的初始搭建以及开发过程。该框架使用了特定的方式来进行配置，从而使开发人员不再需要定义样板化的配置。通过这种方式，Spring Boot致力于在蓬勃发展的快速应用开发领域(rapid application development)成为领导者。  特点 创建独立的Spri">
+  <meta name="description" content="导语:  当我们编写的项目上线后，为了能第一时间知晓该项目是否出现问题，常常对项目进行健康检查及一些指标进行监控。Spring Boot-Actuator 就是帮助我们监控我们的Spring Boot项目。本文不介绍太多, 仅限学习使用, 如有意见请联系我.  使用 Spring Boot 最主要的特性就是AutoConfig（自动配置），而对于我们这些使用者来说也就是各种starter，Spri">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Spring boot + Swagger 入门搭建">
-<meta property="og:url" content="https://sanqiange.github.io/2017/08/11/springboot-01/index.html">
+<meta property="og:title" content="Spring boot 健康检测">
+<meta property="og:url" content="https://sanqiange.github.io/2017/08/16/springboot-02/index.html">
 <meta property="og:site_name" content="三千歌">
-<meta property="og:description" content="导语: Spring-Boot Spring Boot是由Pivotal团队提供的全新框架，其设计目的是用来简化新Spring应用的初始搭建以及开发过程。该框架使用了特定的方式来进行配置，从而使开发人员不再需要定义样板化的配置。通过这种方式，Spring Boot致力于在蓬勃发展的快速应用开发领域(rapid application development)成为领导者。  特点 创建独立的Spri">
-<meta property="og:image" content="http://upload-images.jianshu.io/upload_images/7209437-7839bc1e017c381a.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
-<meta property="og:image" content="http://upload-images.jianshu.io/upload_images/7209437-38a4e0fba86e438b.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
-<meta property="og:image" content="http://upload-images.jianshu.io/upload_images/7209437-e006e7a74bef385b.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
-<meta property="og:image" content="http://upload-images.jianshu.io/upload_images/7209437-dc0091d0d69298bb.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
-<meta property="og:updated_time" content="2017-08-11T12:16:47.000Z">
+<meta property="og:description" content="导语:  当我们编写的项目上线后，为了能第一时间知晓该项目是否出现问题，常常对项目进行健康检查及一些指标进行监控。Spring Boot-Actuator 就是帮助我们监控我们的Spring Boot项目。本文不介绍太多, 仅限学习使用, 如有意见请联系我.  使用 Spring Boot 最主要的特性就是AutoConfig（自动配置），而对于我们这些使用者来说也就是各种starter，Spri">
+<meta property="og:updated_time" content="2017-08-17T00:56:01.000Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Spring boot + Swagger 入门搭建">
-<meta name="twitter:description" content="导语: Spring-Boot Spring Boot是由Pivotal团队提供的全新框架，其设计目的是用来简化新Spring应用的初始搭建以及开发过程。该框架使用了特定的方式来进行配置，从而使开发人员不再需要定义样板化的配置。通过这种方式，Spring Boot致力于在蓬勃发展的快速应用开发领域(rapid application development)成为领导者。  特点 创建独立的Spri">
-<meta name="twitter:image" content="http://upload-images.jianshu.io/upload_images/7209437-7839bc1e017c381a.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240">
+<meta name="twitter:title" content="Spring boot 健康检测">
+<meta name="twitter:description" content="导语:  当我们编写的项目上线后，为了能第一时间知晓该项目是否出现问题，常常对项目进行健康检查及一些指标进行监控。Spring Boot-Actuator 就是帮助我们监控我们的Spring Boot项目。本文不介绍太多, 仅限学习使用, 如有意见请联系我.  使用 Spring Boot 最主要的特性就是AutoConfig（自动配置），而对于我们这些使用者来说也就是各种starter，Spri">
   
     <link rel="alternative" href="/atom.xml" title="三千歌" type="application/atom+xml">
   
@@ -152,91 +147,37 @@
             <canvas data-colors="#eaeaea" data-sectionHeight="100" data-contentId="js-content" id="myCanvas1" class="anm-canvas"></canvas>
           </div>
           <div id="js-content" class="content-ll">
-            <article id="post-springboot-01" class="article article-type-post " itemscope itemprop="blogPost">
+            <article id="post-springboot-02" class="article article-type-post " itemscope itemprop="blogPost">
   <div class="article-inner">
     
       <header class="article-header">
         
   
     <h1 class="article-title" itemprop="name">
-      Spring boot + Swagger 入门搭建
+      Spring boot 健康检测
     </h1>
   
 
         
-        <a href="/2017/08/11/springboot-01/" class="archive-article-date">
-  	<time datetime="2017-08-11T11:18:57.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2017-08-11</time>
+        <a href="/2017/08/16/springboot-02/" class="archive-article-date">
+  	<time datetime="2017-08-16T10:44:35.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2017-08-16</time>
 </a>
         
       </header>
     
     <div class="article-entry" itemprop="articleBody">
       
-        <h4 id="导语"><a href="#导语" class="headerlink" title="导语:"></a>导语:</h4><blockquote>
-<p><a href="https://baike.baidu.com/item/Spring%20Boot/20249767?fr=aladdin" target="_blank" rel="external">Spring-Boot</a> Spring Boot是由Pivotal团队提供的全新框架，其设计目的是用来简化新Spring应用的初始搭建以及开发过程。该框架使用了特定的方式来进行配置，从而使开发人员不再需要定义样板化的配置。通过这种方式，Spring Boot致力于在蓬勃发展的快速应用开发领域(rapid application development)成为领导者。</p>
+        <h2 id="导语"><a href="#导语" class="headerlink" title="导语:"></a>导语:</h2><blockquote>
+<p> 当我们编写的项目上线后，为了能第一时间知晓该项目是否出现问题，常常对项目进行健康检查及一些指标进行监控。<br>Spring Boot-Actuator 就是帮助我们监控我们的Spring Boot项目。<br>本文不介绍太多, 仅限学习使用, 如有意见请联系我.</p>
 </blockquote>
-<h2 id="特点"><a href="#特点" class="headerlink" title="特点"></a>特点</h2><ul>
-<li>创建独立的Spring应用程序</li>
-<li>嵌入的Tomcat，无需部署WAR文件</li>
-<li>简化Maven配置</li>
-<li>自动配置Spring</li>
-<li>提供生产就绪型功能，如指标，健康检查和外部配置</li>
-<li>绝对没有代码生成和对XML没有要求配置</li>
-</ul>
-<h2 id="创建Spring-boot项目"><a href="#创建Spring-boot项目" class="headerlink" title="创建Spring-boot项目"></a>创建Spring-boot项目</h2><p>1) 使用IDEA 选择Spring Initalizr –&gt;Next￼￼<br><img src="http://upload-images.jianshu.io/upload_images/7209437-7839bc1e017c381a.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt=""><br>2) 可以什么都不选,直接下一步<br><img src="http://upload-images.jianshu.io/upload_images/7209437-38a4e0fba86e438b.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt=""><br>3) 勾选web<br><img src="http://upload-images.jianshu.io/upload_images/7209437-e006e7a74bef385b.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt=""><br>4) 完成创建<br><img src="http://upload-images.jianshu.io/upload_images/7209437-dc0091d0d69298bb.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt=""></p>
-<h2 id="POM配置"><a href="#POM配置" class="headerlink" title="POM配置"></a>POM配置</h2><pre><code>&lt;!--boot start--&gt;
-&lt;dependency&gt;
-    &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
-    &lt;artifactId&gt;spring-boot-starter-web&lt;/artifactId&gt;
-&lt;/dependency&gt;
-
-&lt;dependency&gt;
-    &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
-    &lt;artifactId&gt;spring-boot-starter-test&lt;/artifactId&gt;
-    &lt;scope&gt;test&lt;/scope&gt;
-&lt;/dependency&gt;
-&lt;!--boot end--&gt;
-</code></pre><h2 id="启动-Spring-Boot-项目"><a href="#启动-Spring-Boot-项目" class="headerlink" title="启动 Spring-Boot 项目"></a>启动 Spring-Boot 项目</h2><ul>
-<li><p>创建 DomeController.java</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line">	import org.springframework.boot.SpringApplication;</div><div class="line">import org.springframework.boot.autoconfigure.SpringBootApplication;</div><div class="line"></div><div class="line">@SpringBootApplication</div><div class="line">public class DomeController &#123;</div><div class="line"></div><div class="line">   public static void main(String[] args) &#123;</div><div class="line">      SpringApplication.run(DomeController.class, args);</div><div class="line">   &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-</li>
-</ul>
-<ul>
-<li>创建方法 helloSpringBoot</li>
-<li><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">@RequestMapping(value = &quot;/hello&quot;)</div><div class="line">public String helloSpringBoot()&#123;</div><div class="line">    return &quot;Hello SpringBoot&quot;;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-</li>
-<li><p>在刚刚创建的项目中找到 DomeApplication.java 并启动它</p>
-</li>
-<li>浏览器请求<code>localhost:8080/dome/hello</code></li>
-</ul>
-<h2 id="Swagger"><a href="#Swagger" class="headerlink" title="Swagger"></a>Swagger</h2><blockquote>
-<p><a href="">Swagger</a> 是一款RESTFUL接口的文档在线自动生成+功能测试功能软件。本文简单介绍了在项目中集成swagger的方法和一些常见问题。Swagger 是一个规范和完整的框架，用于生成、描述、调用和可视化 RESTful 风格的 Web 服务。总体目标是使客户端和文件系统作为服务器以同样的速度来更新。文件的方法，参数和模型紧密集成到服务器端的代码，允许API来始终保持同步。Swagger 让部署管理和使用功能强大的API从未如此简单。</p>
+<h2 id="使用"><a href="#使用" class="headerlink" title="使用"></a>使用</h2><hr>
+<p>Spring Boot 最主要的特性就是AutoConfig（自动配置），而对于我们这些使用者来说也就是各种starter，<br>Spring Boot-Actuator 也提供了starter，为我们自动配置，在使用上我们只需要添加starter到我们的依赖中，然后启动项目即可。</p>
+<hr>
+<h4 id="POM文件中添加依赖"><a href="#POM文件中添加依赖" class="headerlink" title="POM文件中添加依赖"></a>POM文件中添加依赖</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">&lt;dependency&gt;</div><div class="line">     &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;</div><div class="line">     &lt;artifactId&gt;spring-boot-starter-actuator&lt;/artifactId&gt;</div><div class="line"> &lt;/dependency&gt;</div></pre></td></tr></table></figure>
+<h2 id="常用Endpoint"><a href="#常用Endpoint" class="headerlink" title="常用Endpoint"></a>常用Endpoint</h2><p>Spring Boot-actuator，提供了许多有用的EndPoint，对Spring Boot应用提供各种监控，下面说一下我常用的EndPoint：</p>
+<blockquote>
+<p>/health 应用的健康状态<br>/configprops 获取应用的配置信息，因为Spring Boot 可能发布时是单独的Jar包，配置文件可能包含其中， 当我们需要检查配置文件时可以使用 ConfigpropsEndPoint 进行查看一些配置是否正确。<br>/trace 最近几次的http请求信息</p>
 </blockquote>
-<h5 id="学习之前我们需要做一点准备"><a href="#学习之前我们需要做一点准备" class="headerlink" title="学习之前我们需要做一点准备"></a>学习之前我们需要做一点准备</h5><ol>
-<li>创建User类</li>
-<li>Swagger2 服务类</li>
-<li>创建UserController.java</li>
-<li>启动SpringBoot</li>
-<li>查看Swagger UI页面</li>
-</ol>
-<h3 id="引入POM"><a href="#引入POM" class="headerlink" title="引入POM"></a>引入POM</h3><pre><code>&lt;!--swagger start--&gt;
-&lt;dependency&gt;
-    &lt;groupId&gt;io.springfox&lt;/groupId&gt;
-    &lt;artifactId&gt;springfox-swagger2&lt;/artifactId&gt;
-    &lt;version&gt;2.2.2&lt;/version&gt;
-&lt;/dependency&gt;
-&lt;dependency&gt;
-    &lt;groupId&gt;io.springfox&lt;/groupId&gt;
-    &lt;artifactId&gt;springfox-swagger-ui&lt;/artifactId&gt;
-    &lt;version&gt;2.2.2&lt;/version&gt;
-&lt;/dependency&gt;
-
-&lt;!--swagger end--&gt;
-</code></pre><h4 id="创建User类"><a href="#创建User类" class="headerlink" title="创建User类"></a>创建User类</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div></pre></td><td class="code"><pre><div class="line">public class User implements Serializable&#123;	</div><div class="line">    private String name;</div><div class="line">    private Integer age;</div><div class="line">    private long id;</div><div class="line">    </div><div class="line">    public String getName() &#123;</div><div class="line">        return name;</div><div class="line">    &#125;</div><div class="line">    public void setName(String name) &#123;</div><div class="line">        this.name = name;</div><div class="line">    &#125;</div><div class="line">    public Integer getAge() &#123;</div><div class="line">        return age;</div><div class="line">    &#125;</div><div class="line">    public void setAge(Integer age) &#123;</div><div class="line">        this.age = age;</div><div class="line">    &#125;</div><div class="line">    public long getId() &#123;</div><div class="line">        return id;</div><div class="line">    &#125;</div><div class="line">    public void setId(long id) &#123;</div><div class="line">        this.id = id;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<h4 id="Swagger2-服务类"><a href="#Swagger2-服务类" class="headerlink" title="Swagger2 服务类"></a>Swagger2 服务类</h4><h5 id="swagger-服务关键代码-必须和boot-服务启动类同一目录"><a href="#swagger-服务关键代码-必须和boot-服务启动类同一目录" class="headerlink" title="swagger-服务关键代码:必须和boot 服务启动类同一目录"></a>swagger-服务关键代码:必须和boot 服务启动类同一目录</h5><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div></pre></td><td class="code"><pre><div class="line">import org.springframework.context.annotation.Bean;</div><div class="line">import org.springframework.context.annotation.Configuration;</div><div class="line">import springfox.documentation.builders.ApiInfoBuilder;</div><div class="line">import springfox.documentation.builders.PathSelectors;</div><div class="line">import springfox.documentation.builders.RequestHandlerSelectors;</div><div class="line">import springfox.documentation.service.ApiInfo;</div><div class="line">import springfox.documentation.spi.DocumentationType;</div><div class="line">import springfox.documentation.spring.web.plugins.Docket;</div><div class="line">import springfox.documentation.swagger2.annotations.EnableSwagger2;</div><div class="line"></div><div class="line"></div><div class="line">@Configuration</div><div class="line">@EnableSwagger2</div><div class="line">public class Swagger2 &#123;</div><div class="line">    @Bean</div><div class="line">    public Docket createRestApi() &#123;</div><div class="line">        return new Docket(DocumentationType.SWAGGER_2)</div><div class="line">                .apiInfo(apiInfo())</div><div class="line">                .select()</div><div class="line">                .apis(RequestHandlerSelectors.basePackage(&quot;com.sanqiange&quot;))</div><div class="line">                .paths(PathSelectors.any())</div><div class="line">                .build();</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    private ApiInfo apiInfo() &#123;</div><div class="line">        return new ApiInfoBuilder()</div><div class="line">                .title(&quot;Spring Boot中使用Swagger2构建RESTful APIs&quot;)</div><div class="line">                .description(&quot;更多Spring Boot相关文章请关注：http://blog.didispace.com/&quot;)</div><div class="line">                </div><div class="line">                .termsOfServiceUrl(&quot;http://blog.didispace.com/&quot;)</div><div class="line">                .contact(&quot;dd&quot;)</div><div class="line">                .version(&quot;1.0&quot;)</div><div class="line">                .build();</div><div class="line">    &#125;</div><div class="line"></div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<h4 id="创建UserController-java"><a href="#创建UserController-java" class="headerlink" title="创建UserController.java"></a>创建UserController.java</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div></pre></td><td class="code"><pre><div class="line">import com.sanqian.entity.User;</div><div class="line">import io.swagger.annotations.ApiImplicitParam;</div><div class="line">import io.swagger.annotations.ApiImplicitParams;</div><div class="line">import io.swagger.annotations.ApiOperation;</div><div class="line">import org.springframework.http.MediaType;</div><div class="line">import org.springframework.web.bind.annotation.*;</div><div class="line"></div><div class="line">import java.util.*;</div><div class="line"></div><div class="line"></div><div class="line">@RestController</div><div class="line">@RequestMapping(value = &quot;/users&quot;)// 通过这里配置使下面的映射都在/users下，可去除</div><div class="line">public class UserController &#123;</div><div class="line">    static Map&lt;Long, User&gt; users = Collections.synchronizedMap(new HashMap&lt;Long, User&gt;());</div><div class="line"></div><div class="line">    /**</div><div class="line">     * @return</div><div class="line">     * @ApiOperation 方法添加注释</div><div class="line">     * @RequestMapping 指定方法路径</div><div class="line">     */</div><div class="line">    @ApiOperation(value = &quot;获取用户列表&quot;,</div><div class="line">            notes = &quot;注释&quot;,</div><div class="line">            httpMethod = &quot;GET&quot;,</div><div class="line">            nickname = &quot;getUserList&quot;,</div><div class="line">            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)</div><div class="line">    @RequestMapping(value = &#123;&quot;&quot;&#125;, method = RequestMethod.GET)</div><div class="line">    public List&lt;User&gt; getUserList() &#123;</div><div class="line">        List&lt;User&gt; r = new ArrayList&lt;User&gt;(users.values());</div><div class="line">        return r;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    /**</div><div class="line">     * @param user</div><div class="line">     * @return</div><div class="line">     * @ApiImplicitParam 注解来给参数增加说明</div><div class="line">     */</div><div class="line">    @ApiOperation(value = &quot;创建用户&quot;, notes = &quot;根据User对象创建用户&quot;, httpMethod = &quot;POST&quot;)</div><div class="line">    @ApiImplicitParam(name = &quot;user&quot;, value = &quot;用户详细实体user&quot;, required = true, dataType = &quot;User&quot;)</div><div class="line">    @RequestMapping(value = &quot;&quot;, method = RequestMethod.POST)</div><div class="line">    public String postUser(@RequestBody User user) &#123;</div><div class="line">        users.put(user.getId(), user);</div><div class="line">        return &quot;success&quot;;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    @ApiOperation(value = &quot;获取用户详细信息&quot;, notes = &quot;根据url的id来获取用户详细信息&quot;, httpMethod = &quot;GET&quot;)</div><div class="line">    @ApiImplicitParam(paramType = &quot;path&quot;, name = &quot;id&quot;, value = &quot;用户ID&quot;, required = true, dataType = &quot;Long&quot;)</div><div class="line">    @RequestMapping(value = &quot;/&#123;id&#125;&quot;, method = RequestMethod.GET)</div><div class="line">    public User getUser(@PathVariable Long id) &#123;</div><div class="line">        return users.get(id);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    @ApiOperation(value = &quot;更新用户详细信息&quot;, notes = &quot;根据url的id来指定更新对象，并根据传过来的user信息来更新用户详细信息&quot;, httpMethod = &quot;PUT&quot;)</div><div class="line">    @ApiImplicitParams(&#123;</div><div class="line">            @ApiImplicitParam(paramType = &quot;path&quot;, name = &quot;id&quot;, value = &quot;用户ID&quot;, required = true, dataType = &quot;Long&quot;),</div><div class="line">            @ApiImplicitParam(name = &quot;user&quot;, value = &quot;用户详细实体user&quot;, required = true, dataType = &quot;User&quot;)</div><div class="line">    &#125;)</div><div class="line">    @RequestMapping(value = &quot;/&#123;id&#125;&quot;, method = RequestMethod.PUT)</div><div class="line">    public String putUser(@PathVariable Long id, @RequestBody User user) &#123;</div><div class="line">        User u = users.get(id);</div><div class="line">        u.setName(user.getName());</div><div class="line">        u.setAge(user.getAge());</div><div class="line">        users.put(id, u);</div><div class="line">        return &quot;success&quot;;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    @ApiOperation(value = &quot;删除用户&quot;, notes = &quot;根据url的id来指定删除对象&quot;, httpMethod = &quot;DELETE&quot;)</div><div class="line">    @ApiImplicitParam(paramType = &quot;path&quot;, name = &quot;id&quot;, value = &quot;用户ID&quot;, required = true, dataType = &quot;Long&quot;)</div><div class="line">    @RequestMapping(value = &quot;/&#123;id&#125;&quot;, method = RequestMethod.DELETE)</div><div class="line">    public String deleteUser(@PathVariable Long id) &#123;</div><div class="line">        users.remove(id);</div><div class="line">        return &quot;success&quot;;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<h3 id="启动SpringBoot"><a href="#启动SpringBoot" class="headerlink" title="启动SpringBoot"></a>启动SpringBoot</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line">import org.springframework.boot.SpringApplication;</div><div class="line">import org.springframework.boot.autoconfigure.SpringBootApplication;</div><div class="line"></div><div class="line">@SpringBootApplication</div><div class="line">public class CenterApplication &#123;</div><div class="line"></div><div class="line">   public static void main(String[] args) &#123;</div><div class="line">      SpringApplication.run(CenterApplication.class, args);</div><div class="line">   &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<h3 id="查看Swagger-UI页面"><a href="#查看Swagger-UI页面" class="headerlink" title="查看Swagger UI页面"></a>查看Swagger UI页面</h3><p>地址栏输入<code>localhost:8080/swagger-ui.html#/</code></p>
 
       
 
@@ -321,7 +262,7 @@
     <a class="close js-modal-close" href="javascript:;"><i class="icon icon-close"></i></a>
     <p>扫一扫，分享到微信</p>
     <div class="wx-qrcode">
-      <img src="http://s.jiathis.com/qrcode.php?url=https://sanqiange.github.io/2017/08/11/springboot-01/" alt="微信分享二维码">
+      <img src="http://s.jiathis.com/qrcode.php?url=https://sanqiange.github.io/2017/08/16/springboot-02/" alt="微信分享二维码">
     </div>
 </div>
 
@@ -335,15 +276,11 @@
   
 <nav id="article-nav">
   
-    <a href="/2017/08/16/springboot-02/" id="article-nav-newer" class="article-nav-link-wrap">
-      <i class="icon-circle-left"></i>
-      <div class="article-nav-title">
-        
-          Spring boot 健康检测
-        
-      </div>
-    </a>
   
+    <a href="/2017/08/11/springboot-01/" id="article-nav-older" class="article-nav-link-wrap">
+      <div class="article-nav-title">Spring boot + Swagger 入门搭建</div>
+      <i class="icon-circle-right"></i>
+    </a>
   
 </nav>
 
