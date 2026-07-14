@@ -6,14 +6,18 @@
   <meta name="renderer" content="webkit">
   <meta http-equiv="X-UA-Compatible" content="IE=edge" >
   <link rel="dns-prefetch" href="https://sanqiange.github.io">
-  <title>三千歌</title>
+  <title>Java 批量流式调用大模型：OkHttp 封装与内存释放实战 | 三千歌</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta property="og:type" content="website">
-<meta property="og:title" content="三千歌">
-<meta property="og:url" content="https://sanqiange.github.io/index.html">
+  <meta name="description" content="记录一次 Java 批量调用多模态大模型的工程实践：基于 OkHttp 的请求/响应封装、流式读取 OBS/COS 远程图片并安全转 Base64、按 batch 拆分循环处理以及可落地的内存释放手段。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Java 批量流式调用大模型：OkHttp 封装与内存释放实战">
+<meta property="og:url" content="https://sanqiange.github.io/2026/07/14/bigmodel-image-stream/index.html">
 <meta property="og:site_name" content="三千歌">
+<meta property="og:description" content="记录一次 Java 批量调用多模态大模型的工程实践：基于 OkHttp 的请求/响应封装、流式读取 OBS/COS 远程图片并安全转 Base64、按 batch 拆分循环处理以及可落地的内存释放手段。">
+<meta property="og:updated_time" content="2026-07-14T06:25:54.000Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="三千歌">
+<meta name="twitter:title" content="Java 批量流式调用大模型：OkHttp 封装与内存释放实战">
+<meta name="twitter:description" content="记录一次 Java 批量调用多模态大模型的工程实践：基于 OkHttp 的请求/响应封装、流式读取 OBS/COS 远程图片并安全转 Base64、按 batch 拆分循环处理以及可落地的内存释放手段。">
   
     <link rel="alternative" href="/atom.xml" title="三千歌" type="application/atom+xml">
   
@@ -143,238 +147,58 @@
             <canvas data-colors="#eaeaea" data-sectionHeight="100" data-contentId="js-content" id="myCanvas1" class="anm-canvas"></canvas>
           </div>
           <div id="js-content" class="content-ll">
-  
-    <article id="post-bigmodel-image-stream" class="article article-type-post  article-index" itemscope itemprop="blogPost">
+            <article id="post-bigmodel-image-stream" class="article article-type-post " itemscope itemprop="blogPost">
   <div class="article-inner">
     
       <header class="article-header">
         
   
-    <h1 itemprop="name">
-      <a class="article-title" href="/2026/07/14/bigmodel-image-stream/">Java 批量流式调用大模型：OkHttp 封装与内存释放实战</a>
+    <h1 class="article-title" itemprop="name">
+      Java 批量流式调用大模型：OkHttp 封装与内存释放实战
     </h1>
   
 
         
-        <a href="/2026/07/14/bigmodel-image-stream/" class="archive-article-date">
+        <a href="/2017/08/16/springboot-02/" class="archive-article-date">
   	<time datetime="2026-07-14T06:25:54.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2026-07-14</time>
 </a>
         
       </header>
     
     <div class="article-entry" itemprop="articleBody">
-      
-        <h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>最近在做内容审核时，需要把大量对象存储（OBS / COS）上的图片交给多模态大模型走一遍，期望对每一批图片产出统一的判定结果。</p>
+      <h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>最近在做内容审核时，需要把大量对象存储（OBS / COS）上的图片交给多模态大模型走一遍，期望对每一批图片产出统一的判定结果。</p>
 <p>原方案是把所有图片 URL 一次性塞进同一个 JSON 请求体，看起来很省事，但只要图片一多，就容易遇到两个问题：</p>
 <ol>
 <li>请求体里的 Base64 文本非常大，HTTP 客户端序列化时堆内存直接拉满；</li>
 <li>部分大模型对单次请求的图片数量、整体大小有限制，超过就 400 或者直接超时。</li>
 </ol>
-<p>本次重构使用轻量级 <strong>OkHttp 4.x</strong> 作为 HTTP 客户端（单例 <code>OkHttpClient</code> + 连接池），对 OBS / COS 签名链接做<strong>流式下载 → 实时 Base64 编码</strong>，把图片列表按<strong>小批量（batch）分页</strong>循环处理，所有 <code>Closeable</code> 都用 try-with-resources 包裹。文章最后还订正了原贴里“<code>base64Data = null</code> 释放内存”、“<code>System.gc()</code> 当调优手段”这两处容易误导的写法。</p>
-
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-      
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/2026/07/14/bigmodel-image-stream/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-<aside class="wrap-side-operation">
-    <div class="mod-side-operation">
-        
-        <div class="jump-container" id="js-jump-container" style="display:none;">
-            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
-                <i class="icon-font icon-back"></i>
-            </a>
-            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
-                <i class="icon-font icon-plane jump-plane"></i>
-            </div>
-        </div>
-        
-        
-    </div>
-</aside>
-
-
-
-
-  
-    <article id="post-springboot-02" class="article article-type-post  article-index" itemscope itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/08/16/springboot-02/">Spring boot 健康检测</a>
-    </h1>
-  
-
-        
-        <a href="/2017/08/16/springboot-02/" class="archive-article-date">
-  	<time datetime="2017-08-16T10:44:35.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2017-08-16</time>
-</a>
-        
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h2 id="导语"><a href="#导语" class="headerlink" title="导语:"></a>导语:</h2><blockquote>
-<p> 当我们编写的项目上线后，为了能第一时间知晓该项目是否出现问题，常常对项目进行健康检查及一些指标进行监控。<br>Spring Boot-Actuator 就是帮助我们监控我们的Spring Boot项目。<br>本文不介绍太多, 仅限学习使用, 如有意见请联系我.</p>
-</blockquote>
-<h2 id="使用"><a href="#使用" class="headerlink" title="使用"></a>使用</h2><hr>
-<p>Spring Boot 最主要的特性就是AutoConfig（自动配置），而对于我们这些使用者来说也就是各种starter，<br>Spring Boot-Actuator 也提供了starter，为我们自动配置，在使用上我们只需要添加starter到我们的依赖中，然后启动项目即可。</p>
-<hr>
-<h4 id="POM文件中添加依赖"><a href="#POM文件中添加依赖" class="headerlink" title="POM文件中添加依赖"></a>POM文件中添加依赖</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">&lt;dependency&gt;</div><div class="line">     &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;</div><div class="line">     &lt;artifactId&gt;spring-boot-starter-actuator&lt;/artifactId&gt;</div><div class="line"> &lt;/dependency&gt;</div></pre></td></tr></table></figure>
-<h2 id="常用Endpoint"><a href="#常用Endpoint" class="headerlink" title="常用Endpoint"></a>常用Endpoint</h2><p>Spring Boot-actuator，提供了许多有用的EndPoint，对Spring Boot应用提供各种监控，下面说一下我常用的EndPoint：</p>
-<blockquote>
-<p>/health 应用的健康状态<br>/configprops 获取应用的配置信息，因为Spring Boot 可能发布时是单独的Jar包，配置文件可能包含其中， 当我们需要检查配置文件时可以使用 ConfigpropsEndPoint 进行查看一些配置是否正确。<br>/trace 最近几次的http请求信息</p>
-</blockquote>
-
-      
-
-      
-    </div>
-    <div class="article-info article-info-index">
-      
-      
-      
-
-      
-        <p class="article-more-link">
-          <a class="article-more-a" href="/2017/08/16/springboot-02/">展开全文 >></a>
-        </p>
-      
-
-      
-      <div class="clearfix"></div>
-    </div>
-  </div>
-</article>
-
-<aside class="wrap-side-operation">
-    <div class="mod-side-operation">
-        
-        <div class="jump-container" id="js-jump-container" style="display:none;">
-            <a href="javascript:void(0)" class="mod-side-operation__jump-to-top">
-                <i class="icon-font icon-back"></i>
-            </a>
-            <div id="js-jump-plan-container" class="jump-plan-container" style="top: -11px;">
-                <i class="icon-font icon-plane jump-plane"></i>
-            </div>
-        </div>
-        
-        
-    </div>
-</aside>
-
-
-
-
-  
-    <article id="post-springboot-01" class="article article-type-post  article-index" itemscope itemprop="blogPost">
-  <div class="article-inner">
-    
-      <header class="article-header">
-        
-  
-    <h1 itemprop="name">
-      <a class="article-title" href="/2017/08/11/springboot-01/">Spring boot + Swagger 入门搭建</a>
-    </h1>
-  
-
-        
-        <a href="/2017/08/11/springboot-01/" class="archive-article-date">
-  	<time datetime="2017-08-11T11:18:57.000Z" itemprop="datePublished"><i class="icon-calendar icon"></i>2017-08-11</time>
-</a>
-        
-      </header>
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <h4 id="导语"><a href="#导语" class="headerlink" title="导语:"></a>导语:</h4><blockquote>
-<p><a href="https://baike.baidu.com/item/Spring%20Boot/20249767?fr=aladdin" target="_blank" rel="external">Spring-Boot</a> Spring Boot是由Pivotal团队提供的全新框架，其设计目的是用来简化新Spring应用的初始搭建以及开发过程。该框架使用了特定的方式来进行配置，从而使开发人员不再需要定义样板化的配置。通过这种方式，Spring Boot致力于在蓬勃发展的快速应用开发领域(rapid application development)成为领导者。</p>
-</blockquote>
-<h2 id="特点"><a href="#特点" class="headerlink" title="特点"></a>特点</h2><ul>
-<li>创建独立的Spring应用程序</li>
-<li>嵌入的Tomcat，无需部署WAR文件</li>
-<li>简化Maven配置</li>
-<li>自动配置Spring</li>
-<li>提供生产就绪型功能，如指标，健康检查和外部配置</li>
-<li>绝对没有代码生成和对XML没有要求配置</li>
-</ul>
-<h2 id="创建Spring-boot项目"><a href="#创建Spring-boot项目" class="headerlink" title="创建Spring-boot项目"></a>创建Spring-boot项目</h2><p>1) 使用IDEA 选择Spring Initalizr –&gt;Next￼￼<br><img src="http://upload-images.jianshu.io/upload_images/7209437-7839bc1e017c381a.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt=""><br>2) 可以什么都不选,直接下一步<br><img src="http://upload-images.jianshu.io/upload_images/7209437-38a4e0fba86e438b.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt=""><br>3) 勾选web<br><img src="http://upload-images.jianshu.io/upload_images/7209437-e006e7a74bef385b.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt=""><br>4) 完成创建<br><img src="http://upload-images.jianshu.io/upload_images/7209437-dc0091d0d69298bb.jpg?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt=""></p>
-<h2 id="POM配置"><a href="#POM配置" class="headerlink" title="POM配置"></a>POM配置</h2><pre><code>&lt;!--boot start--&gt;
-&lt;dependency&gt;
-    &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
-    &lt;artifactId&gt;spring-boot-starter-web&lt;/artifactId&gt;
-&lt;/dependency&gt;
-
-&lt;dependency&gt;
-    &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
-    &lt;artifactId&gt;spring-boot-starter-test&lt;/artifactId&gt;
-    &lt;scope&gt;test&lt;/scope&gt;
-&lt;/dependency&gt;
-&lt;!--boot end--&gt;
-</code></pre><h2 id="启动-Spring-Boot-项目"><a href="#启动-Spring-Boot-项目" class="headerlink" title="启动 Spring-Boot 项目"></a>启动 Spring-Boot 项目</h2><ul>
-<li><p>创建 DomeController.java</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line">	import org.springframework.boot.SpringApplication;</div><div class="line">import org.springframework.boot.autoconfigure.SpringBootApplication;</div><div class="line"></div><div class="line">@SpringBootApplication</div><div class="line">public class DomeController &#123;</div><div class="line"></div><div class="line">   public static void main(String[] args) &#123;</div><div class="line">      SpringApplication.run(DomeController.class, args);</div><div class="line">   &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-</li>
-</ul>
+<p>于是就有了这次重构：</p>
 <ul>
-<li>创建方法 helloSpringBoot</li>
-<li><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">@RequestMapping(value = &quot;/hello&quot;)</div><div class="line">public String helloSpringBoot()&#123;</div><div class="line">    return &quot;Hello SpringBoot&quot;;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-</li>
-<li><p>在刚刚创建的项目中找到 DomeApplication.java 并启动它</p>
-</li>
-<li>浏览器请求<code>localhost:8080/dome/hello</code></li>
+<li>使用轻量级 <strong>OkHttp 4.x</strong> 作为 HTTP 客户端，单例 <code>OkHttpClient</code> + 连接池；</li>
+<li>对 OBS / COS 的签名链接做<strong>流式下载 → 实时 Base64 编码</strong>，避免一次性读入完整 <code>byte[]</code>；</li>
+<li>把图片列表按<strong>小批量（batch）分页</strong>循环处理，每批结束释放临时对象；</li>
+<li>所有 <code>Closeable</code> 都用 <strong>try-with-resources</strong> 包裹，杜绝连接/文件句柄泄漏。</li>
 </ul>
-<h2 id="Swagger"><a href="#Swagger" class="headerlink" title="Swagger"></a>Swagger</h2><blockquote>
-<p><a href="">Swagger</a> 是一款RESTFUL接口的文档在线自动生成+功能测试功能软件。本文简单介绍了在项目中集成swagger的方法和一些常见问题。Swagger 是一个规范和完整的框架，用于生成、描述、调用和可视化 RESTful 风格的 Web 服务。总体目标是使客户端和文件系统作为服务器以同样的速度来更新。文件的方法，参数和模型紧密集成到服务器端的代码，允许API来始终保持同步。Swagger 让部署管理和使用功能强大的API从未如此简单。</p>
-</blockquote>
-<h5 id="学习之前我们需要做一点准备"><a href="#学习之前我们需要做一点准备" class="headerlink" title="学习之前我们需要做一点准备"></a>学习之前我们需要做一点准备</h5><ol>
-<li>创建User类</li>
-<li>Swagger2 服务类</li>
-<li>创建UserController.java</li>
-<li>启动SpringBoot</li>
-<li>查看Swagger UI页面</li>
+<h2 id="一、核心依赖"><a href="#一、核心依赖" class="headerlink" title="一、核心依赖"></a>一、核心依赖</h2><p>完整 <code>pom.xml</code> 片段：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line">&lt;dependencies&gt;</div><div class="line">    &lt;!-- OkHttp 4.x，Java 8 兼容 --&gt;</div><div class="line">    &lt;dependency&gt;</div><div class="line">        &lt;groupId&gt;com.squareup.okhttp3&lt;/groupId&gt;</div><div class="line">        &lt;artifactId&gt;okhttp&lt;/artifactId&gt;</div><div class="line">        &lt;version&gt;4.12.0&lt;/version&gt;</div><div class="line">    &lt;/dependency&gt;</div><div class="line">    &lt;!-- Fastjson：组装请求 / 解析响应 --&gt;</div><div class="line">    &lt;dependency&gt;</div><div class="line">        &lt;groupId&gt;com.alibaba&lt;/groupId&gt;</div><div class="line">        &lt;artifactId&gt;fastjson&lt;/artifactId&gt;</div><div class="line">        &lt;version&gt;1.2.83&lt;/version&gt;</div><div class="line">    &lt;/dependency&gt;</div><div class="line">&lt;/dependencies&gt;</div></pre></td></tr></table></figure>
+<h2 id="二、工具类：BigModelImageUtil"><a href="#二、工具类：BigModelImageUtil" class="headerlink" title="二、工具类：BigModelImageUtil"></a>二、工具类：BigModelImageUtil</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div><div class="line">78</div><div class="line">79</div><div class="line">80</div><div class="line">81</div><div class="line">82</div><div class="line">83</div><div class="line">84</div><div class="line">85</div><div class="line">86</div><div class="line">87</div><div class="line">88</div><div class="line">89</div><div class="line">90</div><div class="line">91</div><div class="line">92</div><div class="line">93</div><div class="line">94</div><div class="line">95</div><div class="line">96</div><div class="line">97</div><div class="line">98</div><div class="line">99</div><div class="line">100</div><div class="line">101</div><div class="line">102</div><div class="line">103</div><div class="line">104</div><div class="line">105</div><div class="line">106</div><div class="line">107</div><div class="line">108</div><div class="line">109</div><div class="line">110</div><div class="line">111</div><div class="line">112</div><div class="line">113</div><div class="line">114</div><div class="line">115</div><div class="line">116</div><div class="line">117</div><div class="line">118</div><div class="line">119</div><div class="line">120</div><div class="line">121</div><div class="line">122</div><div class="line">123</div><div class="line">124</div><div class="line">125</div><div class="line">126</div><div class="line">127</div><div class="line">128</div><div class="line">129</div><div class="line">130</div><div class="line">131</div><div class="line">132</div><div class="line">133</div><div class="line">134</div><div class="line">135</div><div class="line">136</div><div class="line">137</div><div class="line">138</div><div class="line">139</div><div class="line">140</div><div class="line">141</div><div class="line">142</div><div class="line">143</div><div class="line">144</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">import</span> com.alibaba.fastjson.JSONArray;</div><div class="line"><span class="keyword">import</span> com.alibaba.fastjson.JSONObject;</div><div class="line"><span class="keyword">import</span> okhttp3.*;</div><div class="line"></div><div class="line"><span class="keyword">import</span> java.io.ByteArrayOutputStream;</div><div class="line"><span class="keyword">import</span> java.io.InputStream;</div><div class="line"><span class="keyword">import</span> java.net.HttpURLConnection;</div><div class="line"><span class="keyword">import</span> java.net.URL;</div><div class="line"><span class="keyword">import</span> java.util.Base64;</div><div class="line"><span class="keyword">import</span> java.util.List;</div><div class="line"><span class="keyword">import</span> java.util.concurrent.TimeUnit;</div><div class="line"></div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">BigModelImageUtil</span> </span>&#123;</div><div class="line"></div><div class="line">    <span class="comment">/**</div><div class="line">     * 全局单例 OkHttpClient</div><div class="line">     * 1) 复用一个连接池，避免每次 new Call 都重建 TCP/TLS 通道；</div><div class="line">     * 2) 限制空闲连接/连接数上限，防止内存被空闲连接吃满；</div><div class="line">     * 3) 显式设置 connect/read/write 三个超时，避免下游卡住时把整个调用链拖垮。</div><div class="line">     */</div><div class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> OkHttpClient CLIENT = <span class="keyword">new</span> OkHttpClient.Builder()</div><div class="line">            .connectTimeout(<span class="number">30</span>, TimeUnit.SECONDS)</div><div class="line">            .readTimeout(<span class="number">60</span>, TimeUnit.SECONDS)</div><div class="line">            .writeTimeout(<span class="number">30</span>, TimeUnit.SECONDS)</div><div class="line">            <span class="comment">// 最多保活 16 条空闲连接，5 分钟空闲后释放</span></div><div class="line">            .connectionPool(<span class="keyword">new</span> ConnectionPool(<span class="number">16</span>, <span class="number">5</span>, TimeUnit.MINUTES))</div><div class="line">            <span class="comment">// 全局最多并发 64 条请求；超过的会进入等待队列</span></div><div class="line">            .maxRequestsPerHost(<span class="number">64</span>)</div><div class="line">            .build();</div><div class="line"></div><div class="line">    <span class="comment">/**</div><div class="line">     * 1) 流式下载 OBS / COS 上的图片；</div><div class="line">     * 2) 按块读入 4KB 缓冲区，一边读一边转 Base64，不在堆里拼出完整大 byte[]；</div><div class="line">     * 3) 用 try-with-resources 保证 InputStream 一定被关闭，避免连接 / 文件句柄泄漏。</div><div class="line">     *</div><div class="line">     * <span class="doctag">@param</span> imageUrl 图片直链（支持 OBS / COS 临时签名 URL）</div><div class="line">     * <span class="doctag">@return</span> Base64 字符串（不含 data:image/jpeg;base64, 前缀），失败返回 null</div><div class="line">     */</div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> String <span class="title">convertUrlToBase64</span><span class="params">(String imageUrl)</span> </span>&#123;</div><div class="line">        <span class="keyword">if</span> (imageUrl == <span class="keyword">null</span> || imageUrl.trim().isEmpty()) &#123;</div><div class="line">            <span class="keyword">return</span> <span class="keyword">null</span>;</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        HttpURLConnection connection = <span class="keyword">null</span>;</div><div class="line">        <span class="keyword">try</span> &#123;</div><div class="line">            URL url = <span class="keyword">new</span> URL(imageUrl);</div><div class="line">            connection = (HttpURLConnection) url.openConnection();</div><div class="line">            connection.setConnectTimeout(<span class="number">10_000</span>);</div><div class="line">            connection.setReadTimeout(<span class="number">20_000</span>);</div><div class="line">            connection.setRequestProperty(<span class="string">"User-Agent"</span>, <span class="string">"BigModelImageUtil/1.0"</span>);</div><div class="line">            connection.connect();</div><div class="line"></div><div class="line">            <span class="keyword">if</span> (connection.getResponseCode() != HttpURLConnection.HTTP_OK) &#123;</div><div class="line">                System.err.println(<span class="string">"下载图片失败，status="</span> + connection.getResponseCode() + <span class="string">", url="</span> + imageUrl);</div><div class="line">                <span class="keyword">return</span> <span class="keyword">null</span>;</div><div class="line">            &#125;</div><div class="line"></div><div class="line">            <span class="keyword">try</span> (InputStream inputStream = connection.getInputStream();</div><div class="line">                 ByteArrayOutputStream outputStream = <span class="keyword">new</span> ByteArrayOutputStream()) &#123;</div><div class="line"></div><div class="line">                <span class="keyword">byte</span>[] buffer = <span class="keyword">new</span> <span class="keyword">byte</span>[<span class="number">4096</span>];</div><div class="line">                <span class="keyword">int</span> bytesRead;</div><div class="line">                <span class="keyword">while</span> ((bytesRead = inputStream.read(buffer)) != -<span class="number">1</span>) &#123;</div><div class="line">                    outputStream.write(buffer, <span class="number">0</span>, bytesRead);</div><div class="line">                &#125;</div><div class="line"></div><div class="line">                <span class="keyword">byte</span>[] imageBytes = outputStream.toByteArray();</div><div class="line">                <span class="keyword">return</span> Base64.getEncoder().encodeToString(imageBytes);</div><div class="line">            &#125;</div><div class="line">        &#125; <span class="keyword">catch</span> (Exception e) &#123;</div><div class="line">            System.err.println(<span class="string">"图片转 Base64 失败，url="</span> + imageUrl + <span class="string">", err="</span> + e.getMessage());</div><div class="line">            <span class="keyword">return</span> <span class="keyword">null</span>;</div><div class="line">        &#125; <span class="keyword">finally</span> &#123;</div><div class="line">            <span class="keyword">if</span> (connection != <span class="keyword">null</span>) &#123;</div><div class="line">                connection.disconnect(); <span class="comment">// 立即把连接还给连接池</span></div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="comment">/**</div><div class="line">     * 调大模型（兼容 OpenAI / DeepSeek / 通义千问多模态接口）</div><div class="line">     *</div><div class="line">     * <span class="doctag">@param</span> apiKey    大模型 API Key</div><div class="line">     * <span class="doctag">@param</span> apiUrl    兼容 OpenAI 的请求地址</div><div class="line">     * <span class="doctag">@param</span> modelName 模型名，例如 deepseek-chat / qwen-vl-max</div><div class="line">     * <span class="doctag">@param</span> imageUrls 本批次的图片 URL（建议每批 2~4 张）</div><div class="line">     * <span class="doctag">@param</span> prompt    提示词</div><div class="line">     */</div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> String <span class="title">callModelWithBatchImages</span><span class="params">(String apiKey,</span></span></div><div class="line"><span class="function"><span class="params">                                                    String apiUrl,</span></span></div><div class="line"><span class="function"><span class="params">                                                    String modelName,</span></span></div><div class="line"><span class="function"><span class="params">                                                    List&lt;String&gt; imageUrls,</span></span></div><div class="line"><span class="function"><span class="params">                                                    String prompt)</span> </span>&#123;</div><div class="line">        <span class="keyword">try</span> &#123;</div><div class="line">            JSONObject requestBodyJson = <span class="keyword">new</span> JSONObject();</div><div class="line">            requestBodyJson.put(<span class="string">"model"</span>, modelName);</div><div class="line"></div><div class="line">            JSONArray messages = <span class="keyword">new</span> JSONArray();</div><div class="line">            JSONObject userMessage = <span class="keyword">new</span> JSONObject();</div><div class="line">            userMessage.put(<span class="string">"role"</span>, <span class="string">"user"</span>);</div><div class="line"></div><div class="line">            JSONArray contentArray = <span class="keyword">new</span> JSONArray();</div><div class="line">            JSONObject textContent = <span class="keyword">new</span> JSONObject();</div><div class="line">            textContent.put(<span class="string">"type"</span>, <span class="string">"text"</span>);</div><div class="line">            textContent.put(<span class="string">"text"</span>, prompt);</div><div class="line">            contentArray.add(textContent);</div><div class="line"></div><div class="line">            <span class="keyword">for</span> (String url : imageUrls) &#123;</div><div class="line">                String base64Data = convertUrlToBase64(url);</div><div class="line">                <span class="keyword">if</span> (base64Data == <span class="keyword">null</span>) &#123;</div><div class="line">                    <span class="keyword">continue</span>;</div><div class="line">                &#125;</div><div class="line">                JSONObject imageContent = <span class="keyword">new</span> JSONObject();</div><div class="line">                imageContent.put(<span class="string">"type"</span>, <span class="string">"image_url"</span>);</div><div class="line">                JSONObject imageUrlObj = <span class="keyword">new</span> JSONObject();</div><div class="line">                imageUrlObj.put(<span class="string">"url"</span>, <span class="string">"data:image/jpeg;base64,"</span> + base64Data);</div><div class="line">                imageContent.put(<span class="string">"image_url"</span>, imageUrlObj);</div><div class="line">                contentArray.add(imageContent);</div><div class="line">            &#125;</div><div class="line"></div><div class="line">            userMessage.put(<span class="string">"content"</span>, contentArray);</div><div class="line">            messages.add(userMessage);</div><div class="line">            requestBodyJson.put(<span class="string">"messages"</span>, messages);</div><div class="line"></div><div class="line">            RequestBody body = RequestBody.create(</div><div class="line">                    MediaType.parse(<span class="string">"application/json; charset=utf-8"</span>),</div><div class="line">                    requestBodyJson.toJSONString().getBytes());</div><div class="line"></div><div class="line">            Request request = <span class="keyword">new</span> Request.Builder()</div><div class="line">                    .url(apiUrl)</div><div class="line">                    .addHeader(<span class="string">"Authorization"</span>, <span class="string">"Bearer "</span> + apiKey)</div><div class="line">                    .post(body)</div><div class="line">                    .build();</div><div class="line"></div><div class="line">            <span class="comment">// try-with-resources：保证 ResponseBody 一定被 close，否则 OkHttp 会在连接池里“卡住”一条流</span></div><div class="line">            <span class="keyword">try</span> (Response response = CLIENT.newCall(request).execute()) &#123;</div><div class="line">                ResponseBody responseBody = response.body();</div><div class="line">                String responseText = responseBody == <span class="keyword">null</span> ? <span class="string">""</span> : responseBody.string();</div><div class="line">                <span class="keyword">if</span> (!response.isSuccessful()) &#123;</div><div class="line">                    <span class="keyword">return</span> <span class="string">"请求失败，状态码: "</span> + response.code() + <span class="string">", 错误信息: "</span> + responseText;</div><div class="line">                &#125;</div><div class="line">                JSONObject responseJson = JSONObject.parseObject(responseText);</div><div class="line">                <span class="keyword">return</span> responseJson.getJSONArray(<span class="string">"choices"</span>)</div><div class="line">                        .getJSONObject(<span class="number">0</span>)</div><div class="line">                        .getJSONObject(<span class="string">"message"</span>)</div><div class="line">                        .getString(<span class="string">"content"</span>);</div><div class="line">            &#125;</div><div class="line">        &#125; <span class="keyword">catch</span> (Exception e) &#123;</div><div class="line">            e.printStackTrace();</div><div class="line">            <span class="keyword">return</span> <span class="string">"调用大模型异常: "</span> + e.getMessage();</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h3 id="关于内存优化的几点修正"><a href="#关于内存优化的几点修正" class="headerlink" title="关于内存优化的几点修正"></a>关于内存优化的几点修正</h3><p>原贴里有两处容易误导的写法，这里特意拎出来订正：</p>
+<ol>
+<li><strong><code>base64Data = null</code> 并不能释放内存</strong>。Base64 字符串在循环里已经塞进 JSON，请求体中仍持有引用，把变量置 <code>null</code> 既不会触发 GC，也不会让对象更快回收；真正有用的是把<strong>整个 <code>JSONArray</code> 的生命周期</strong>控制在方法栈内，方法结束请求体就不可达。</li>
+<li><strong>不要把 <code>System.gc()</code> 当作调优手段</strong>。它是同步 Full GC，会导致所有工作线程 Stop-The-World；只有在<em>确认</em>接下来要分配超大对象、并且可以接受 STW 暂停时才考虑。</li>
 </ol>
-<h3 id="引入POM"><a href="#引入POM" class="headerlink" title="引入POM"></a>引入POM</h3><pre><code>&lt;!--swagger start--&gt;
-&lt;dependency&gt;
-    &lt;groupId&gt;io.springfox&lt;/groupId&gt;
-    &lt;artifactId&gt;springfox-swagger2&lt;/artifactId&gt;
-    &lt;version&gt;2.2.2&lt;/version&gt;
-&lt;/dependency&gt;
-&lt;dependency&gt;
-    &lt;groupId&gt;io.springfox&lt;/groupId&gt;
-    &lt;artifactId&gt;springfox-swagger-ui&lt;/artifactId&gt;
-    &lt;version&gt;2.2.2&lt;/version&gt;
-&lt;/dependency&gt;
-
-&lt;!--swagger end--&gt;
-</code></pre><h4 id="创建User类"><a href="#创建User类" class="headerlink" title="创建User类"></a>创建User类</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div></pre></td><td class="code"><pre><div class="line">public class User implements Serializable&#123;	</div><div class="line">    private String name;</div><div class="line">    private Integer age;</div><div class="line">    private long id;</div><div class="line">    </div><div class="line">    public String getName() &#123;</div><div class="line">        return name;</div><div class="line">    &#125;</div><div class="line">    public void setName(String name) &#123;</div><div class="line">        this.name = name;</div><div class="line">    &#125;</div><div class="line">    public Integer getAge() &#123;</div><div class="line">        return age;</div><div class="line">    &#125;</div><div class="line">    public void setAge(Integer age) &#123;</div><div class="line">        this.age = age;</div><div class="line">    &#125;</div><div class="line">    public long getId() &#123;</div><div class="line">        return id;</div><div class="line">    &#125;</div><div class="line">    public void setId(long id) &#123;</div><div class="line">        this.id = id;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<h4 id="Swagger2-服务类"><a href="#Swagger2-服务类" class="headerlink" title="Swagger2 服务类"></a>Swagger2 服务类</h4><h5 id="swagger-服务关键代码-必须和boot-服务启动类同一目录"><a href="#swagger-服务关键代码-必须和boot-服务启动类同一目录" class="headerlink" title="swagger-服务关键代码:必须和boot 服务启动类同一目录"></a>swagger-服务关键代码:必须和boot 服务启动类同一目录</h5><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div></pre></td><td class="code"><pre><div class="line">import org.springframework.context.annotation.Bean;</div><div class="line">import org.springframework.context.annotation.Configuration;</div><div class="line">import springfox.documentation.builders.ApiInfoBuilder;</div><div class="line">import springfox.documentation.builders.PathSelectors;</div><div class="line">import springfox.documentation.builders.RequestHandlerSelectors;</div><div class="line">import springfox.documentation.service.ApiInfo;</div><div class="line">import springfox.documentation.spi.DocumentationType;</div><div class="line">import springfox.documentation.spring.web.plugins.Docket;</div><div class="line">import springfox.documentation.swagger2.annotations.EnableSwagger2;</div><div class="line"></div><div class="line"></div><div class="line">@Configuration</div><div class="line">@EnableSwagger2</div><div class="line">public class Swagger2 &#123;</div><div class="line">    @Bean</div><div class="line">    public Docket createRestApi() &#123;</div><div class="line">        return new Docket(DocumentationType.SWAGGER_2)</div><div class="line">                .apiInfo(apiInfo())</div><div class="line">                .select()</div><div class="line">                .apis(RequestHandlerSelectors.basePackage(&quot;com.sanqiange&quot;))</div><div class="line">                .paths(PathSelectors.any())</div><div class="line">                .build();</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    private ApiInfo apiInfo() &#123;</div><div class="line">        return new ApiInfoBuilder()</div><div class="line">                .title(&quot;Spring Boot中使用Swagger2构建RESTful APIs&quot;)</div><div class="line">                .description(&quot;更多Spring Boot相关文章请关注：http://blog.didispace.com/&quot;)</div><div class="line">                </div><div class="line">                .termsOfServiceUrl(&quot;http://blog.didispace.com/&quot;)</div><div class="line">                .contact(&quot;dd&quot;)</div><div class="line">                .version(&quot;1.0&quot;)</div><div class="line">                .build();</div><div class="line">    &#125;</div><div class="line"></div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<h4 id="创建UserController-java"><a href="#创建UserController-java" class="headerlink" title="创建UserController.java"></a>创建UserController.java</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div></pre></td><td class="code"><pre><div class="line">import com.sanqian.entity.User;</div><div class="line">import io.swagger.annotations.ApiImplicitParam;</div><div class="line">import io.swagger.annotations.ApiImplicitParams;</div><div class="line">import io.swagger.annotations.ApiOperation;</div><div class="line">import org.springframework.http.MediaType;</div><div class="line">import org.springframework.web.bind.annotation.*;</div><div class="line"></div><div class="line">import java.util.*;</div><div class="line"></div><div class="line"></div><div class="line">@RestController</div><div class="line">@RequestMapping(value = &quot;/users&quot;)// 通过这里配置使下面的映射都在/users下，可去除</div><div class="line">public class UserController &#123;</div><div class="line">    static Map&lt;Long, User&gt; users = Collections.synchronizedMap(new HashMap&lt;Long, User&gt;());</div><div class="line"></div><div class="line">    /**</div><div class="line">     * @return</div><div class="line">     * @ApiOperation 方法添加注释</div><div class="line">     * @RequestMapping 指定方法路径</div><div class="line">     */</div><div class="line">    @ApiOperation(value = &quot;获取用户列表&quot;,</div><div class="line">            notes = &quot;注释&quot;,</div><div class="line">            httpMethod = &quot;GET&quot;,</div><div class="line">            nickname = &quot;getUserList&quot;,</div><div class="line">            produces = MediaType.APPLICATION_JSON_UTF8_VALUE)</div><div class="line">    @RequestMapping(value = &#123;&quot;&quot;&#125;, method = RequestMethod.GET)</div><div class="line">    public List&lt;User&gt; getUserList() &#123;</div><div class="line">        List&lt;User&gt; r = new ArrayList&lt;User&gt;(users.values());</div><div class="line">        return r;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    /**</div><div class="line">     * @param user</div><div class="line">     * @return</div><div class="line">     * @ApiImplicitParam 注解来给参数增加说明</div><div class="line">     */</div><div class="line">    @ApiOperation(value = &quot;创建用户&quot;, notes = &quot;根据User对象创建用户&quot;, httpMethod = &quot;POST&quot;)</div><div class="line">    @ApiImplicitParam(name = &quot;user&quot;, value = &quot;用户详细实体user&quot;, required = true, dataType = &quot;User&quot;)</div><div class="line">    @RequestMapping(value = &quot;&quot;, method = RequestMethod.POST)</div><div class="line">    public String postUser(@RequestBody User user) &#123;</div><div class="line">        users.put(user.getId(), user);</div><div class="line">        return &quot;success&quot;;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    @ApiOperation(value = &quot;获取用户详细信息&quot;, notes = &quot;根据url的id来获取用户详细信息&quot;, httpMethod = &quot;GET&quot;)</div><div class="line">    @ApiImplicitParam(paramType = &quot;path&quot;, name = &quot;id&quot;, value = &quot;用户ID&quot;, required = true, dataType = &quot;Long&quot;)</div><div class="line">    @RequestMapping(value = &quot;/&#123;id&#125;&quot;, method = RequestMethod.GET)</div><div class="line">    public User getUser(@PathVariable Long id) &#123;</div><div class="line">        return users.get(id);</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    @ApiOperation(value = &quot;更新用户详细信息&quot;, notes = &quot;根据url的id来指定更新对象，并根据传过来的user信息来更新用户详细信息&quot;, httpMethod = &quot;PUT&quot;)</div><div class="line">    @ApiImplicitParams(&#123;</div><div class="line">            @ApiImplicitParam(paramType = &quot;path&quot;, name = &quot;id&quot;, value = &quot;用户ID&quot;, required = true, dataType = &quot;Long&quot;),</div><div class="line">            @ApiImplicitParam(name = &quot;user&quot;, value = &quot;用户详细实体user&quot;, required = true, dataType = &quot;User&quot;)</div><div class="line">    &#125;)</div><div class="line">    @RequestMapping(value = &quot;/&#123;id&#125;&quot;, method = RequestMethod.PUT)</div><div class="line">    public String putUser(@PathVariable Long id, @RequestBody User user) &#123;</div><div class="line">        User u = users.get(id);</div><div class="line">        u.setName(user.getName());</div><div class="line">        u.setAge(user.getAge());</div><div class="line">        users.put(id, u);</div><div class="line">        return &quot;success&quot;;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    @ApiOperation(value = &quot;删除用户&quot;, notes = &quot;根据url的id来指定删除对象&quot;, httpMethod = &quot;DELETE&quot;)</div><div class="line">    @ApiImplicitParam(paramType = &quot;path&quot;, name = &quot;id&quot;, value = &quot;用户ID&quot;, required = true, dataType = &quot;Long&quot;)</div><div class="line">    @RequestMapping(value = &quot;/&#123;id&#125;&quot;, method = RequestMethod.DELETE)</div><div class="line">    public String deleteUser(@PathVariable Long id) &#123;</div><div class="line">        users.remove(id);</div><div class="line">        return &quot;success&quot;;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<h3 id="启动SpringBoot"><a href="#启动SpringBoot" class="headerlink" title="启动SpringBoot"></a>启动SpringBoot</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line">import org.springframework.boot.SpringApplication;</div><div class="line">import org.springframework.boot.autoconfigure.SpringBootApplication;</div><div class="line"></div><div class="line">@SpringBootApplication</div><div class="line">public class CenterApplication &#123;</div><div class="line"></div><div class="line">   public static void main(String[] args) &#123;</div><div class="line">      SpringApplication.run(CenterApplication.class, args);</div><div class="line">   &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
-<h3 id="查看Swagger-UI页面"><a href="#查看Swagger-UI页面" class="headerlink" title="查看Swagger UI页面"></a>查看Swagger UI页面</h3><p>地址栏输入<code>localhost:8080/swagger-ui.html#/</code></p>
-
-      
-
-      
+<p>实际能落地的内存优化只有三件事：<strong>控制单次请求体积、复用 OkHttpClient 减少对象分配、用 try-with-resources 释放外部资源</strong>。</p>
+<h2 id="三、按批次循环调用"><a href="#三、按批次循环调用" class="headerlink" title="三、按批次循环调用"></a>三、按批次循环调用</h2><p>当你需要处理成千上万张图片时，永远不要一次性塞给大模型，按 <code>batchSize</code> 分页，每批结束让局部变量自然失效，下一次 Young GC 就能回收：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">import</span> java.util.ArrayList;</div><div class="line"><span class="keyword">import</span> java.util.Arrays;</div><div class="line"><span class="keyword">import</span> java.util.List;</div><div class="line"></div><div class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Main</span> </span>&#123;</div><div class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</div><div class="line">        String apiKey    = <span class="string">"your_domestic_model_api_key"</span>;</div><div class="line">        String apiUrl    = <span class="string">"https://yourmodel.com/v1/chat/completions"</span>;</div><div class="line">        String modelName = <span class="string">"your-vision-model"</span>;</div><div class="line"></div><div class="line">        List&lt;String&gt; allObsUrls = Arrays.asList(</div><div class="line">                <span class="string">"https://myqcloud.com/1.jpg"</span>,</div><div class="line">                <span class="string">"https://myhuaweicloud.com/2.png"</span>,</div><div class="line">                <span class="string">"https://myqcloud.com/3.webp"</span>);</div><div class="line"></div><div class="line">        <span class="comment">// 关键：每批 2~4 张图片，按需调整</span></div><div class="line">        <span class="keyword">int</span> batchSize = <span class="number">2</span>;</div><div class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; allObsUrls.size(); i += batchSize) &#123;</div><div class="line">            List&lt;String&gt; batch = <span class="keyword">new</span> ArrayList&lt;&gt;(</div><div class="line">                    allObsUrls.subList(i, Math.min(i + batchSize, allObsUrls.size())));</div><div class="line"></div><div class="line">            System.out.println(<span class="string">"正在处理批次: "</span> + batch);</div><div class="line">            String aiResult = BigModelImageUtil.callModelWithBatchImages(</div><div class="line">                    apiKey, apiUrl, modelName, batch, <span class="string">"请帮我批量审核这些图片是否有违规内容。"</span>);</div><div class="line">            System.out.println(<span class="string">"AI 回复: "</span> + aiResult);</div><div class="line"></div><div class="line">            <span class="comment">// 每批循环结束，batch、aiResult 都出作用域，</span></div><div class="line">            <span class="comment">// 下一轮 Young GC 即可回收它们以及内部的 Base64 字符串。</span></div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<h2 id="四、还可以再做的优化"><a href="#四、还可以再做的优化" class="headerlink" title="四、还可以再做的优化"></a>四、还可以再做的优化</h2><p>在生产环境把上面这套跑稳之后，还可以继续打磨：</p>
+<ul>
+<li><strong>客户端压缩</strong>：OkHttp 注册 <code>GzipInterceptor</code>，减少下行体积；同步 <code>addInterceptor</code> 给 RequestBody 也压一下，能省 60%+ 带宽。</li>
+<li><strong>连接池调优</strong>：监控 <code>ConnectionPool.connectionCount()</code>，根据下游大模型网关的连接上限反推 <code>maxRequestsPerHost</code>。</li>
+<li><strong>限流与失败重试</strong>：用 Resilience4j / Guava Retrying 做退避，避免把网关打挂。</li>
+<li><strong>请求体不要走 <code>String.getBytes()</code></strong>：使用 <code>RequestBody.create(mediaType, byte[])</code> 或 <code>BufferedSink</code> 直接写流，避免大字符串驻留堆。</li>
+<li><strong>关闭大图片</strong>：在 <code>convertUrlToBase64</code> 里限制 <code>Content-Length</code> 或读取总字节数，超过阈值直接拒掉，防止异常图片撑爆内存。</li>
+</ul>
+<h2 id="五、小结"><a href="#五、小结" class="headerlink" title="五、小结"></a>五、小结</h2><p>这次重构的核心其实只有一句话：<strong>把“一次大请求”拆成“多次小请求”，让堆里的临时对象随方法栈出栈而自然释放</strong>。OkHttp 的连接池、try-with-resources、分批循环，是 Java 后端做高吞吐图像 AI 推理时最实用的三件套。</p>
     </div>
     <div class="article-info article-info-index">
       
@@ -382,16 +206,69 @@
       
 
       
-        <p class="article-more-link">
-          <a class="article-more-a" href="/2017/08/11/springboot-01/">展开全文 >></a>
-        </p>
-      
 
+      
+        
+<div class="share-btn share-icons tooltip-left">
+  <div class="tooltip tooltip-east">
+    <span class="tooltip-item">
+      <a href="javascript:;" class="share-sns share-outer">
+        <i class="icon icon-share"></i>
+      </a>
+    </span>
+    <span class="tooltip-content">
+      <div class="share-wrap">
+        <div class="share-icons">
+          <a class="weibo share-sns" href="javascript:;" data-type="weibo">
+            <i class="icon icon-weibo"></i>
+          </a>
+          <a class="weixin share-sns wxFab" href="javascript:;" data-type="weixin">
+            <i class="icon icon-weixin"></i>
+          </a>
+          <a class="qq share-sns" href="javascript:;" data-type="qq">
+            <i class="icon icon-qq"></i>
+          </a>
+          <a class="douban share-sns" href="javascript:;" data-type="douban">
+            <i class="icon icon-douban"></i>
+          </a>
+          <a class="qzone share-sns" href="javascript:;" data-type="qzone">
+            <i class="icon icon-qzone"></i>
+          </a>
+          <a class="facebook share-sns" href="javascript:;" data-type="facebook">
+            <i class="icon icon-facebook"></i>
+          </a>
+          <a class="twitter share-sns" href="javascript:;" data-type="twitter">
+            <i class="icon icon-twitter"></i>
+          </a>
+          <a class="google share-sns" href="javascript:;" data-type="google">
+            <i class="icon icon-google"></i>
+          </a>
+        </div>
+      </div>
+    </span>
+  </div>
+</div>
+
+<div class="page-modal wx-share js-wx-box">
+    <a class="close js-modal-close" href="javascript:;"><i class="icon icon-close"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <div class="wx-qrcode">
+      <img src="http://s.jiathis.com/qrcode.php?url=https://sanqiange.github.io/2017/08/16/springboot-02/" alt="微信分享二维码">
+    </div>
+</div>
+
+<div class="mask js-mask"></div>
       
       <div class="clearfix"></div>
     </div>
   </div>
 </article>
+
+  
+<nav id="article-nav">
+  
+</nav>
+
 
 <aside class="wrap-side-operation">
     <div class="mod-side-operation">
@@ -411,8 +288,12 @@
 
 
 
+  
+  
+  
 
   
+
   
 
 
@@ -423,7 +304,7 @@
   <div class="outer">
     <div id="footer-info">
     	<div class="footer-left">
-    		&copy; 2017 刘礼鹏
+    		&copy; 2017 - 2026 刘礼鹏
     	</div>
       	<div class="footer-right">
       		
@@ -435,8 +316,8 @@
     <script>
 	var yiliaConfig = {
 		mathjax: false,
-		isHome: true,
-		isPost: false,
+		isHome: false,
+		isPost: true,
 		isArchive: false,
 		isTag: false,
 		isCategory: false,
