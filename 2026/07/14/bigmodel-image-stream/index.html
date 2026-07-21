@@ -28,7 +28,7 @@
 <meta property="og:description" content="记录一次 Java 批量调用多模态大模型的工程实践：基于 OkHttp 的请求&#x2F;响应封装、流式读取 OBS&#x2F;COS 远程图片并安全转 Base64、按 batch 拆分循环处理以及可落地的内存释放手段。">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2026-07-13T22:25:54.000Z">
-<meta property="article:modified_time" content="2026-07-21T11:35:08.911Z">
+<meta property="article:modified_time" content="2026-07-21T11:45:28.059Z">
 <meta property="article:author" content="刘礼鹏">
 <meta property="article:tag" content="编程">
 <meta property="article:tag" content="AI">
@@ -189,15 +189,14 @@
   
           </div>
           <div class="wordcount need-seperator meta-info">
-            7.2k 词 
+            7.1k 词 
           </div>
         </div>
         
       </header>
       <div class="e-content article-entry" itemprop="articleBody">
         
-          <pre><code>  &lt;h2 id=&quot;背景&quot;&gt;&lt;a href=&quot;#背景&quot; class=&quot;headerlink&quot; title=&quot;背景&quot;&gt;&lt;/a&gt;背景&lt;/h2&gt;&lt;p&gt;最近在做内容审核时，需要把大量对象存储（OBS / COS）上的图片交给多模态大模型走一遍，期望对每一批图片产出统一的判定结果。&lt;/p&gt;
-</code></pre>
+          <h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>最近在做内容审核时，需要把大量对象存储（OBS / COS）上的图片交给多模态大模型走一遍，期望对每一批图片产出统一的判定结果。</p>
 <p>原方案是把所有图片 URL 一次性塞进同一个 JSON 请求体，看起来很省事，但只要图片一多，就容易遇到两个问题：</p>
 <ol>
 <li>请求体里的 Base64 文本非常大，HTTP 客户端序列化时堆内存直接拉满；</li>

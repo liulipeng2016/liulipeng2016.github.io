@@ -6,7 +6,7 @@ categories: []
 description: 基于 ponytail 的 “YAGNI 阶梯” 与 caveman 的 “嘴小脑大”，把 “写什么” 与 “怎么说” 拆开治理：让 AI agent 少写代码、写短回复、不乱堆依赖、不丢安全。
 ---
 
-      <h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>用大模型写代码久了，会撞上两个老毛病：</p>
+<h2 id="背景"><a href="#背景" class="headerlink" title="背景"></a>背景</h2><p>用大模型写代码久了，会撞上两个老毛病：</p>
 <ol>
 <li><strong>过度工程</strong>——让你加一个日期选择，agent 给你装了 <code>flatpickr</code>、写了 50 行 wrapper、讨论起时区；</li>
 <li><strong>话太多</strong>——一个 bug 修复，前面先写三段“很高兴帮你排查”。</li>
