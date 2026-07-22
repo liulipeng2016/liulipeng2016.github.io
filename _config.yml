@@ -1,0 +1,84 @@
+# Hexo site config
+title: 三千歌
+subtitle: SanQianGe
+description: 刘礼鹏的个人技术博客
+author: 刘礼鹏
+language: zh-CN
+timezone: Asia/Shanghai
+url: https://sanqiange.github.io
+root: /
+
+# Source / output
+source_dir: source
+public_dir: public
+tag_dir: tags
+archive_dir: archives
+category_dir: categories
+
+# Permalink — preserves existing URLs exactly
+permalink: :year/:month/:day/:title/
+permalink_defaults:
+pretty_urls:
+  trailing_index: true
+  trailing_html: false
+
+# Writing
+new_post_name: :title.md
+default_layout: post
+titlecase: false
+external_link:
+  enable: true
+  field: site
+  exclude:
+filename_case: 0
+render_drafts: false
+post_asset_folder: false
+relative_link: false
+future: true
+syntax_highlighter: highlight.js
+highlight:
+  line_number: true
+  auto_detect: false
+  tab_replace:
+  wrap: true
+  hljs: false
+prismjs:
+  preprocess: true
+  line_number: true
+  tab_replace:
+
+# Category & tag
+default_category: uncategorized
+category_map:
+tag_map:
+
+# Meta
+meta_generator: true
+keywords:
+  - 编程
+  - AI
+  - 工具
+
+# Date format
+date_format: YYYY-MM-DD
+time_format: HH:mm:ss
+
+# Pagination
+per_page: 10
+pagination_dir: page
+
+# Extensions
+theme: vivia
+
+# Deployment placeholder (not used; publishing via git push to master)
+deploy:
+
+# Archive generator — keep URLs aligned with previous Yilia structure
+archive_generator:
+  per_page: 0
+  yearly: true
+  monthly: true
+  daily: false
+
+# Feed
+feed:

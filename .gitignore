@@ -3,3 +3,8 @@
 .idea/
 .vscode/
 node_modules/
+public/
+db.json
+.hexo/
+package-lock.json
+themes/
